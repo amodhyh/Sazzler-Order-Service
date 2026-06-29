@@ -25,6 +25,8 @@ repositories {
 
 ext {
     set('springCloudVersion', "2025.0.0")
+    set('springStatemachineVersion', "4.0.1")
+
 }
 
 dependencies {
@@ -36,6 +38,13 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'org.springframework.kafka:spring-kafka'
+//    state machine for the orchestration
+   // 2. The Statemachine Brain
+    implementation "org.springframework.statemachine:spring-statemachine-core:${springStatemachineVersion}"
+
+    // 3. The Statemachine Database Hydration Tool
+    implementation "org.springframework.statemachine:spring-statemachine-data-jpa:${springStatemachineVersion}"
+
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'

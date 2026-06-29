@@ -1,4 +1,9 @@
 package com.sazzler.ecommerce.sazzler_orderservice.repository;
 
-public interface ProductRepository {
+import com.sazzler.ecommerce.sazzler_orderservice.Entity.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProductRepository extends JpaRepository{
+    Product findById(Long id);
+
 }

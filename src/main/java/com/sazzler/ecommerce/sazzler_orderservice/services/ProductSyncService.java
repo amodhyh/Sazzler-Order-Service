@@ -1,7 +1,7 @@
 package com.sazzler.ecommerce.sazzler_orderservice.services;
 
 
-import com.sazzler.ecommerce.api_def.product_service.DTO.ProductEvent;
+import com.sazzler.ecommerce.sazzler_api_def.product_service.DTO.ProductEvent;
 import com.sazzler.ecommerce.sazzler_orderservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
