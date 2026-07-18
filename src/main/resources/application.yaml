@@ -1,6 +1,16 @@
 spring:
   application:
     name: sazzler-order-service
+  datasource:
+    url: jdbc:postgresql://localhost:5433/sazzler_order_db
+    username: amodhyh
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+
 
   kafka:
     bootstrap-servers: localhost:9092
@@ -25,7 +35,7 @@ spring:
 # Eureka client configuration
 
 server:
-    port: 8082
+  port: 8083
 eureka:
   instance:
     prefer-ip-address: true
