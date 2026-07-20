@@ -30,7 +30,7 @@ spring:
         spring.json.trusted.packages: "com.sazzler.ecommerce.*"
 
         # Tells Jackson which class to map the incoming JSON to
-        spring.json.value.default.type: "package com.sazzler.ecommerce.api_def.product_service.DTO.ProductDTO"
+        spring.json.value.default.type: "com.sazzler.ecommerce.sazzler_api_def.product_service.DTO.ProductEvent"
 
 # Eureka client configuration
 

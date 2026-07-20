@@ -1,8 +1,19 @@
 package com.sazzler.ecommerce.sazzler_orderservice.Entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Product {
 
     enum Status {
@@ -12,7 +23,8 @@ public class Product {
         SHIPPED
     }
     String name;
-    String ID;
+    @Id
+    Integer ID;
     String description;
     double price;
     Status status;
