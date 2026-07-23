@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: sazzler-order-service
+  datasource:
+    url: jdbc:postgresql://localhost:5433/sazzler_order_db
+    username: amodhyh
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      # A unique ID for this service. Kafka uses this to track which messages you've read.
+      group-id: sazzler-product-topic
+
+      # 'earliest' means if the service is new, start from the very beginning of the topic.
+      auto-offset-reset: earliest
+
+      # How to turn bytes back into data
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        # SECURITY: Jackson won't deserialize objects unless you "trust" the package.
+        spring.json.trusted.packages: "com.sazzler.ecommerce.*"
+
+        # Tells Jackson which class to map the incoming JSON to
+        spring.json.value.default.type: "com.sazzler.ecommerce.sazzler_api_def.product_service.DTO.ProductEvent"
+
+# Eureka client configuration
+
+server:
+  port: 8083
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    enabled: true
+    service-url:
+        defaultZone: http://amodhyh:1234@localhost:8761/eureka/
+
+
+#
+# JWT configuration
+# jwt.secret=a_super_secret_key_that_is_at_least_32_characters_long
+# jwt.expiration=3600
