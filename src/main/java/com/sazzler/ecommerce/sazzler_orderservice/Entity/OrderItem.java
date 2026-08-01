@@ -15,15 +15,15 @@ import java.math.BigDecimal;
 public class OrderItem {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     @Column(nullable = false)
-    private Integer productId;
+    private String productId;
 
     @Column(nullable = false)
     private String productName;
