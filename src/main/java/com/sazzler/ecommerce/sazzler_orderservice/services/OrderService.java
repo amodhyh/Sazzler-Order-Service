@@ -12,6 +12,15 @@ import com.sazzler.ecommerce.sazzler_orderservice.Entity.Product;
 import com.sazzler.ecommerce.sazzler_orderservice.repository.OrderRepository;
 import com.sazzler.ecommerce.sazzler_orderservice.repository.ProductRepository;
 
+import com.sazzler.ecommerce.sazzler_orderservice.statemachine.OrderEvent;
+import com.sazzler.ecommerce.sazzler_orderservice.statemachine.OrderStateChangeInterceptor;
+import org.springframework.statemachine.StateMachine;
+import org.springframework.statemachine.config.StateMachineFactory;
+import org.springframework.statemachine.support.DefaultStateMachineContext;
+import org.springframework.messaging.support.MessageBuilder;
+import reactor.core.publisher.Mono;
+import org.springframework.messaging.Message;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +39,8 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final StateMachineFactory<OrderStatus, OrderEvent> stateMachineFactory;
+    private final OrderStateChangeInterceptor orderStateChangeInterceptor;
 
     @Transactional
     public Order createOrder(String userId, OrderRequest request) {
@@ -71,36 +82,44 @@ public class OrderService {
         return savedOrder;
     }
     @Transactional
-    public void cancelOrder(String userId, OrderDTO order){
+    public void cancelOrder(String userId, String orderId) {
 
-        Order existingOrder=orderRepository.findById(order.orderId())
-        .orElseThrow(() -> new            
-  EntityNotFoundException("Order not found"));    
-                
-        if (existingOrder.getUserId().equals(userId)){
+        Order existingOrder = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
 
-            if(existingOrder.getStatus().equals(OrderStatus.SHIPPED)){
+        if (existingOrder.getUserId().equals(userId)) {
+            if (existingOrder.getStatus().equals(OrderStatus.SHIPPED)) {
                 throw new OrderCancellationException("Order has already Shipped");
-            }
-            else if(existingOrder.getStatus().equals(OrderStatus.DELIVERED)){
+            } else if (existingOrder.getStatus().equals(OrderStatus.DELIVERED)) {
                 throw new OrderCancellationException("Order has already Delivered");
-
             }
 
-            existingOrder.setStatus(OrderStatus.CANCELLED);
-            orderRepository.save(existingOrder);
-            log.info("Order {} Cancelled ",order.orderId());
-
-
-        }
-        else {
-            log.info("Order {} is not Cancelled, ACCESS DENIED",order.orderId());
+            sendEvent(orderId, existingOrder.getStatus(), OrderEvent.CANCEL);
+            log.info("Order {} Cancellation event sent ", orderId);
+        } else {
+            log.info("Order {} is not Cancelled, ACCESS DENIED", orderId);
             throw new RuntimeException("Access denied for user: " + userId);
         }
+    }
 
-        
+    private void sendEvent(String orderId, OrderStatus currentStatus, OrderEvent event) {
+        StateMachine<OrderStatus, OrderEvent> sm = stateMachineFactory.getStateMachine(orderId);
+        sm.stopReactively().block();
 
+        sm.getStateMachineAccessor()
+                .doWithAllRegions(sma -> {
+                    sma.addStateMachineInterceptor(orderStateChangeInterceptor);
+                    sma.resetStateMachineReactively(
+                            new DefaultStateMachineContext<>(currentStatus, null, null, null)).block();
+                });
+
+        sm.startReactively().block();
         
+        Message<OrderEvent> msg = MessageBuilder.withPayload(event)
+                .setHeader("ORDER_ID", orderId)
+                .build();
+        
+        sm.sendEvent(Mono.just(msg)).blockLast();
     }
     
     public List<Order> viewOrders(String userId) {
