@@ -41,6 +41,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final StateMachineFactory<OrderStatus, OrderEvent> stateMachineFactory;
     private final OrderStateChangeInterceptor orderStateChangeInterceptor;
+    private final org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public Order createOrder(String userId, OrderRequest request) {
@@ -78,6 +79,13 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         
         log.info("Order {} successfully created in PENDING state", savedOrder.getOrderId());
+        
+        com.sazzler.ecommerce.sazzler_api_def.payment_service.DTO.ProcessPaymentCommand command = 
+            new com.sazzler.ecommerce.sazzler_api_def.payment_service.DTO.ProcessPaymentCommand(
+                savedOrder.getOrderId(), savedOrder.getUserId(), savedOrder.getTotalPrice()
+        );
+        kafkaTemplate.send("payment-commands", command);
+        log.info("Published ProcessPaymentCommand to Kafka for order {}", savedOrder.getOrderId());
         
         return savedOrder;
     }
