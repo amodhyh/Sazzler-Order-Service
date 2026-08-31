@@ -62,4 +62,11 @@ public class OrderController {
         
         return ResponseEntity.ok(dtos);
     }
+
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<Void> cancelOrder(@RequestHeader("X-User-Id") String userId,
+                                            @PathVariable String orderId) {
+        orderService.cancelOrder(userId, orderId);
+        return ResponseEntity.ok().build();
+    }
 }
